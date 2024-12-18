@@ -39,48 +39,52 @@ class Program
 			return;
 		}
 
-		foreach (var firstName in GetAllFirstName(connection))
+		ShowData(connection);
+		int success = InsertData(connection, "Goulwen", "Delaunay", DateTime.Now, 1200.0, "IT");
+		if (success >= 1)
 		{
-			Console.WriteLine($"Prénom: {firstName}");
+			Console.WriteLine("Donnée(s) insérée(s) !");
+			ShowData(connection);
 		}
-
-		// Nous préparons la requete SQL
-		String query = """
-		               INSERT into Employees (FirstName, LastName, HireDate, Salary, Department)
-		               values ('Antonin', 'Do Souto', '17/12/2024', 4, 'IT');
-		               """;
-
-		SqlCommand command = new SqlCommand(query, connection);
-
-		int nbsOfAffRows = command.ExecuteNonQuery();
-
-		Console.WriteLine($"Nombre de lignes affectés : {nbsOfAffRows}");
+		else
+		{
+			await Console.Error.WriteLineAsync("Erreur sur l'insertion de données !");
+		}
 	}
 
-	static List<String> GetAllFirstName(SqlConnection connection)
+	private static void ShowData(SqlConnection connection)
 	{
-		// On créer un tableau de chaine de charactères
-		List<string> firstNames = new List<string>();
+		const string query = "SELECT * FROM Employees";
 
-		// Nous préparons la requete SQL
-		String query = "Select * from Employees";
+		using SqlCommand command = new SqlCommand(query, connection);
+		using SqlDataReader reader = command.ExecuteReader();
 
-		// Nous créons la requete
-		SqlCommand command = new SqlCommand(query, connection);
-
-		// Nous executons la requête
-		SqlDataReader reader = command.ExecuteReader();
-
-		// Tant qu'on peux lire une donnée
 		while (reader.Read())
 		{
-			// Nous lisons la donnée et nous selectons la colonne FirstName
-			// Nous rajoutons la valeur dans le tableau de prénoms
-			firstNames.Add(reader["FirstName"].ToString() ?? "?");
+			Console.WriteLine(
+				$"Salaire de {reader["FirstName"]} {reader["LastName"]}[{reader["Department"]}]: {reader["Salary"]}$"
+			);
 		}
 
 		reader.Close();
+	}
 
-		return firstNames;
+	private static int InsertData(SqlConnection con, string firstName, string lastName, DateTime hireDate,
+		double salary, string department)
+	{
+		string query = """
+		                INSERT INTO Employees(FirstName, LastName, HireDate, Salary, Department)
+		                VALUES (@Firstname, @LastName, @HireDate, @Salary, @Department)
+		                """;
+		SqlCommand command = new SqlCommand(query, con);
+
+		command.Parameters.AddWithValue("FirstName", firstName);
+		command.Parameters.AddWithValue("LastName", lastName);
+		command.Parameters.AddWithValue("HireDate", hireDate);
+		command.Parameters.AddWithValue("Salary", salary);
+		command.Parameters.AddWithValue("Department", department);
+
+		int success = command.ExecuteNonQuery();
+		return success;
 	}
 }
