@@ -7,84 +7,78 @@ class Program
 {
 	private static async Task Main(string[] args)
 	{
-		// Creer la chaine de connexion avec les infos de login
-		var builder = new SqlConnectionStringBuilder
-		{
-			DataSource = "localhost",
-			UserID = "sa",
-			Password = "root",
-			InitialCatalog = "ExerciceDB",
-			IntegratedSecurity = true,
-			TrustServerCertificate = true
-		};
+		DbConnection db = new DbConnection();
 
-		// Créer la connexion grâce à la chaine de connexion
-		var connection = new SqlConnection(builder.ConnectionString);
-		try
-		{
-			// Essayer de se connecter à la db 
-			await connection.OpenAsync();
-		}
-		catch (Exception e)
-		{
-			// si il y a une exception nous affichons le message d'erreur
-			Console.WriteLine(e.Message);
-		}
+		SqlConnection? tryConn = await db.Connect();
 
-		// Si l'état de la connexion n'est pas ouvert
-		if (connection.State != ConnectionState.Open)
+		if (tryConn == null)
 		{
-			// nous affichons "Connection error" puis nous sortons du programme
-			Console.WriteLine("Connection error");
 			return;
 		}
 
-		ShowData(connection);
-		int success = InsertData(connection, "Goulwen", "Delaunay", DateTime.Now, 1200.0, "IT");
-		if (success >= 1)
+		SqlConnection connection = tryConn;
+
+		bool active = true;
+
+		while (active)
 		{
-			Console.WriteLine("Donnée(s) insérée(s) !");
-			ShowData(connection);
+			ConsoleView.ShowFirstMenu();
+
+			string answer = Console.ReadLine() ?? "";
+
+			switch (answer)
+			{
+				case "1":
+					db.ShowData(connection);
+					break;
+				case "2":
+					Dictionary<string, string> r = ConsoleView.ShowInsertMenu();
+
+					DateTime hireDate = DateTime.Now;
+					double salary = 0.0;
+					try
+					{
+						hireDate = DateTime.Parse(r["hireDate"]);
+						salary = double.Parse(r["salary"]);
+					}
+					catch (Exception e)
+					{
+						Console.WriteLine(e.Message);
+					}
+
+					db.InsertData(
+						connection,
+						r["firstName"],
+						r["lastName"],
+						hireDate,
+						salary,
+						r["department"]
+					);
+					break;
+				case "3":
+					break;
+				case "4":
+					var id = ConsoleView.AskQuestion("Veuillez saisir l'ID: ", "-1");
+					int parsedId;
+					if (id == "-1") break;
+					try
+					{
+						parsedId = int.Parse(id);
+					}
+					catch (Exception e)
+					{
+						Console.WriteLine("L'ID ne fonctionne pas !");
+						break;
+					}
+
+					db.DeleteData(connection, parsedId);
+					break;
+				case "5":
+					active = false;
+					break;
+				default:
+					break;
+			}
 		}
-		else
-		{
-			await Console.Error.WriteLineAsync("Erreur sur l'insertion de données !");
-		}
-	}
-
-	private static void ShowData(SqlConnection connection)
-	{
-		const string query = "SELECT * FROM Employees";
-
-		using SqlCommand command = new SqlCommand(query, connection);
-		using SqlDataReader reader = command.ExecuteReader();
-
-		while (reader.Read())
-		{
-			Console.WriteLine(
-				$"Salaire de {reader["FirstName"]} {reader["LastName"]}[{reader["Department"]}]: {reader["Salary"]}$"
-			);
-		}
-
-		reader.Close();
-	}
-
-	private static int InsertData(SqlConnection con, string firstName, string lastName, DateTime hireDate,
-		double salary, string department)
-	{
-		string query = """
-		                INSERT INTO Employees(FirstName, LastName, HireDate, Salary, Department)
-		                VALUES (@Firstname, @LastName, @HireDate, @Salary, @Department)
-		                """;
-		SqlCommand command = new SqlCommand(query, con);
-
-		command.Parameters.AddWithValue("FirstName", firstName);
-		command.Parameters.AddWithValue("LastName", lastName);
-		command.Parameters.AddWithValue("HireDate", hireDate);
-		command.Parameters.AddWithValue("Salary", salary);
-		command.Parameters.AddWithValue("Department", department);
-
-		int success = command.ExecuteNonQuery();
-		return success;
 	}
 }
