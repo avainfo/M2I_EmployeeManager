@@ -2,7 +2,7 @@
 
 namespace EmployeeManager;
 
-public class ConsoleView
+public class ConsolePanel
 {
 	public static void ShowFirstMenu()
 	{
@@ -37,3 +37,18 @@ public class ConsoleView
 		return (result.IsNullOrEmpty()) ? defaultValue : result!;
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

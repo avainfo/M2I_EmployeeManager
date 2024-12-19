@@ -22,7 +22,7 @@ class Program
 
 		while (active)
 		{
-			ConsoleView.ShowFirstMenu();
+			ConsolePanel.ShowFirstMenu();
 
 			string answer = Console.ReadLine() ?? "";
 
@@ -32,7 +32,7 @@ class Program
 					db.ShowData(connection);
 					break;
 				case "2":
-					Dictionary<string, string> r = ConsoleView.ShowInsertMenu();
+					Dictionary<string, string> r = ConsolePanel.ShowInsertMenu();
 
 					DateTime hireDate = DateTime.Now;
 					double salary = 0.0;
@@ -58,7 +58,7 @@ class Program
 				case "3":
 					break;
 				case "4":
-					var id = ConsoleView.AskQuestion("Veuillez saisir l'ID: ", "-1");
+					var id = ConsolePanel.AskQuestion("Veuillez saisir l'ID: ", "-1");
 					int parsedId;
 					if (id == "-1") break;
 					try
