@@ -83,7 +83,7 @@ public class ConsolePanel
 				filteredOptions.Add(x);
 			}
 		}
-		
+
 		List<string> options =
 		[
 			"le prénom",
@@ -93,12 +93,7 @@ public class ConsolePanel
 			"le département",
 		];
 
-		List<string> selectedValues = [];
-		
-		foreach (int option in filteredOptions)
-		{
-			selectedValues.Add(AskQuestion($"Veuillez rentrer {options[option - 1]}: "));
-		}
+		List<string> selectedValues = filteredOptions.Select(option => AskQuestion($"Veuillez rentrer {options[option - 1]}: ")).ToList();
 
 		db.UpdateData(con, id, filteredOptions.ToArray(), selectedValues.ToArray());
 	}
