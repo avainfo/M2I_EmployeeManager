@@ -80,4 +80,50 @@ public class DbConnection
 		int success = command.ExecuteNonQuery();
 		Console.WriteLine((success >= 1) ? "Employé supprimé !" : $"Erreur: id({id}) n'existe pas");
 	}
+
+	public void UpdateData(SqlConnection con, int id, int[] selectedOptions, string[] selectedValues)
+	{
+		//selectedOptions = [1, 3, 5]
+		//selectedValues = ["Antonin", "2024/12/20", "IT"]
+		List<string> options =
+		[
+			"FirstName",
+			"LastName",
+			"HireDate",
+			"Salary",
+			"Department",
+		];
+
+		// ["FirstName = @1", "HireDate = @2", "Department = @3"]
+		List<string> chosenOptions = [];
+
+		int i = 1;
+		foreach (int sOption in selectedOptions)
+		{
+			chosenOptions.Add($"{options[sOption - 1]} = @{i++}");
+		}
+
+		// "FirstName = @1, HireDate = @2, Department = @3"
+		string formattedOptions = string.Join(", ", chosenOptions);
+
+
+		//UPDATE dbo.Employees SET FirstName = @1, HireDate = @2, Department = @3 WHERE EmployeeID = 52
+		string query = $"UPDATE dbo.Employees SET {formattedOptions} WHERE EmployeeID = @EID";
+		SqlCommand command = new SqlCommand(query, con);
+
+		/*
+		 * 1, "Antonin"
+		 * 2, "2024/12/20"
+		 * 3, "IT"
+		 */
+		i = 1;
+		foreach (string selectedValue in selectedValues)
+		{
+			command.Parameters.AddWithValue((i++).ToString(), selectedValue);
+		}
+		command.Parameters.AddWithValue("EID", id);
+
+		int success = command.ExecuteNonQuery();
+		Console.WriteLine((success >= 1) ? "Employé modifié !" : $"Erreur: id({id}) n'existe pas");
+	}
 }
