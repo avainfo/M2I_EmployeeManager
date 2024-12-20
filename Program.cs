@@ -56,6 +56,7 @@ class Program
 					);
 					break;
 				case "3":
+					ConsolePanel.ShowModificationPanel(connection, db);
 					break;
 				case "4":
 					var id = ConsolePanel.AskQuestion("Veuillez saisir l'ID: ", "-1");
